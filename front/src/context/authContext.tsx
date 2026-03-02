@@ -1,6 +1,6 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import type { User } from "../types";
-import { signin as signinService, signup as signupService, logout as logoutService } from "../services/auth.service";
+import { signin as signinService, signup as signupService, logout as logoutService, getUser } from "../services/auth.service";
 
 interface AuthContextType {
   user: User | null;
@@ -20,8 +20,23 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
+  // Au démarrage, on vérifie si un token existe et on récupère l'utilisateur
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId");
+    if (token && userId) {
+      getUser(Number(userId))
+        .then((data) => setUser(data))
+        .catch(() => {
+          localStorage.removeItem("token");
+          localStorage.removeItem("userId");
+        });
+    }
+  }, []);
+
   const signin = async (email: string, password: string) => {
     const data = await signinService(email, password);
+    localStorage.setItem("userId", String(data.user.id));
     setUser(data.user);
   };
 
@@ -36,6 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     logoutService();
+    localStorage.removeItem("userId");
     setUser(null);
   };
 

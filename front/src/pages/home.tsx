@@ -7,22 +7,32 @@ import {
   Text,
   Image,
   Button,
-  Input,
   VStack,
+  HStack,
+  Badge,
 } from "@chakra-ui/react";
+import banniere from "../image/Banniere.techgear.jpg";
 import { getProducts } from "../services/product.service";
-import type { Product } from "../types";
+import { getCategories } from "../services/category.Services";
+import type { Product, Category } from "../types";
 
 const Home = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [search, setSearch] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const fetchProducts = async (searchTerm?: string) => {
+  const fetchProducts = async (categoryId?: number) => {
     setLoading(true);
     try {
-      const data = await getProducts(searchTerm);
+      let data;
+      if (categoryId) {
+        const res = await import("../services/category.Services");
+        data = await res.getProductsByCategory(categoryId);
+      } else {
+        data = await getProducts();
+      }
       setProducts(data);
     } catch {
       console.error("Erreur lors de la récupération des produits");
@@ -33,25 +43,57 @@ const Home = () => {
 
   useEffect(() => {
     fetchProducts();
+    getCategories().then((data) => setCategories(data));
   }, []);
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-    fetchProducts(e.target.value);
+  const handleCategoryClick = (categoryId: number | null) => {
+    setSelectedCategory(categoryId);
+    fetchProducts(categoryId ?? undefined);
   };
 
   return (
     <Box p="8">
       <Heading mb="6">Nos produits</Heading>
 
-      {/* Barre de recherche */}
-      <Input
-        placeholder="Rechercher un produit..."
-        value={search}
-        onChange={handleSearch}
-        mb="8"
-        maxW="400px"
-      />
+      {/* Bannière */}
+<Box mb="8" borderRadius="lg" overflow="hidden">
+  <Image
+    src={banniere}
+    alt="Bannière"
+    width="100%"
+    height="450px"
+    objectFit="cover"
+  />
+</Box>
+
+      {/* Filtres catégories */}
+      <HStack gap="3" mb="8" flexWrap="wrap">
+        <Badge
+          px="3"
+          py="2"
+          borderRadius="full"
+          cursor="pointer"
+          bg={selectedCategory === null ? "rgba(48, 88, 166, 0.35)" : "gray.100"}
+          color={selectedCategory === null ? "white" : "black"}
+          onClick={() => handleCategoryClick(null)}
+        >
+          Tous
+        </Badge>
+        {categories.map((category) => (
+          <Badge
+            key={category.id}
+            px="3"
+            py="2"
+            borderRadius="full"
+            cursor="pointer"
+            bg={selectedCategory === category.id ? "rgba(48, 88, 166, 0.35)" : "gray.100"}
+            color={selectedCategory === category.id ? "white" : "black"}
+            onClick={() => handleCategoryClick(category.id)}
+          >
+            {category.name}
+          </Badge>
+        ))}
+      </HStack>
 
       {/* Grille de produits */}
       {loading ? (
@@ -68,7 +110,6 @@ const Home = () => {
               overflow="hidden"
               _hover={{ shadow: "md", transform: "translateY(-2px)", transition: "all 0.2s" }}
             >
-              {/* Image du produit */}
               <Image
                 src={product.Images[0]?.link || "https://via.placeholder.com/250"}
                 alt={product.name}
@@ -76,9 +117,8 @@ const Home = () => {
                 width="100%"
                 objectFit="cover"
               />
-
-              {/* Infos du produit */}
               <VStack p="4" align="start" gap="2">
+                <Badge colorScheme="blue">{product.Category?.name}</Badge>
                 <Heading size="md">{product.name}</Heading>
                 <Text color="gray.600" fontSize="sm" lineClamp={2}>
                   {product.description}
