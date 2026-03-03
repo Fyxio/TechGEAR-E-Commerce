@@ -3,6 +3,7 @@
 Application e-commerce développée avec React et TypeScript dans le cadre du module React & TypeScript.
 
 🌐 **Site en ligne : [tech-gear-e-commerce.vercel.app](https://tech-gear-e-commerce.vercel.app)**
+Lien pour voir le maquettage : [Figma tech-gear](https://www.figma.com/design/j6sdTjhJ6YhECWDpCkgJrb/Site-E-commerce?node-id=0-1&t=bKdcW2ClM0EDuNH2-1)
 
 ## 📋 Présentation du projet
 
