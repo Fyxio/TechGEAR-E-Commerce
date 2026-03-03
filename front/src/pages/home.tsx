@@ -53,7 +53,6 @@ const Home = () => {
 
   return (
     <Box p="8">
-      <Heading mb="6">Nos produits</Heading>
 
       {/* Bannière */}
 <Box mb="8" borderRadius="lg" overflow="hidden">
